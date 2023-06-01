@@ -5,6 +5,13 @@ var https = require("https");
 var url = require("url");
 var StringDecoder = require("string_decoder").StringDecoder;
 var config = require("./config");
+var _data = require("./lib/data");
+
+//TESTING
+//@TODO delete task
+_data.delete("test", "newFile", function (err) {
+  console.log("This was the error", err);
+});
 
 //Instantiate the HTTP sever
 var httpServer = http.createServer(function (req, res) {
