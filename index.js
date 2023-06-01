@@ -1,11 +1,38 @@
 //Dependencies
+var fs = require("fs");
 var http = require("http");
+var https = require("https");
 var url = require("url");
 var StringDecoder = require("string_decoder").StringDecoder;
 var config = require("./config");
 
-//The server should respond to all requests with a string
-var server = http.createServer(function (req, res) {
+//Instantiate the HTTP sever
+var httpServer = http.createServer(function (req, res) {
+  unifiedServer(req, res);
+});
+
+//start the HTTP server
+httpServer.listen(config.httpPort, function () {
+  console.log("The server is listening on port " + config.httpPort);
+});
+
+//Instantiate the HTTPS server
+var httpsServerOptions = {
+  key: fs.readFileSync("./https/key.pem"),
+  cert: fs.readFileSync("./https/cert.pem"),
+};
+
+var httpsServer = https.createServer(httpsServerOptions, function (req, res) {
+  unifiedServer(req, res);
+});
+
+//start the HTTPS server
+httpsServer.listen(config.httpsPort, function () {
+  console.log("The server is listening on port " + config.httpsPort);
+});
+
+// All the server logic for https and http server
+var unifiedServer = function (req, res) {
   //Get the URL and parse it
   var parsedUrl = url.parse(req.url, true);
 
@@ -66,31 +93,16 @@ var server = http.createServer(function (req, res) {
 
       //Log the request path
       console.log("Returning this response ", statusCode, payloadString);
-
-      //Testing
-      console.log(router["sample"]);
     });
   });
-});
-
-//start the server
-server.listen(config.port, function () {
-  console.log(
-    "The server is listening on port " +
-      config.port +
-      " in " +
-      config.envName +
-      " mode"
-  );
-});
+};
 
 //Define handlers
 var handlers = {};
 
-//sample handler
-handlers.sample = function (data, callback) {
-  //Callback an http status code and a payload object
-  callback(406, { name: "sample handler" });
+//ping handler
+handlers.ping = function (data, callback) {
+  callback(200);
 };
 
 //Not found handler
@@ -100,5 +112,5 @@ handlers.notFound = function (data, callback) {
 
 // Define a request router
 var router = {
-  sample: handlers.sample,
+  ping: handlers.ping,
 };
